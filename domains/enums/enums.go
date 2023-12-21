@@ -1,8 +1,8 @@
 package enums
 
-type UserID int64
+type UserID string
 
-type BandID int64
+type BandID string
 
 type BandRole int32
 
