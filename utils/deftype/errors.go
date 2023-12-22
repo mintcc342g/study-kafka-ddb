@@ -2,6 +2,7 @@ package deftype
 
 import (
 	"net/http"
+	"sync"
 
 	"go.uber.org/zap"
 )
@@ -31,24 +32,29 @@ func (r CustomError) Error() string {
 }
 
 var errs = map[int64]Error{}
+var mu = sync.RWMutex{}
 
-func setErrs(num int64, code int, msg string) {
+func checkDup(num int64, code int, msg string) {
 	if _, duplicated := errs[num]; duplicated {
 		zap.S().Panic("duplicated error!!")
 		return
 	}
-
-	errs[num] = New(num, code, msg)
 }
 
 func New(num int64, code int, msg string) Error {
-	setErrs(num, code, msg)
+	checkDup(num, code, msg)
 
-	return CustomError{
+	err := CustomError{
 		number:     num,
 		message:    msg,
 		statusCode: code,
 	}
+
+	mu.Lock()
+	errs[num] = err
+	mu.Unlock()
+
+	return err
 }
 
 var (
