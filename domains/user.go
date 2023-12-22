@@ -2,6 +2,7 @@ package domains
 
 import (
 	"regexp"
+	"strings"
 	"study-kafka-ddb/domains/enums"
 	"study-kafka-ddb/utils"
 	"study-kafka-ddb/utils/deftype"
@@ -46,6 +47,18 @@ func (r *User) SignUp(name, email, password string) deftype.Error {
 	r.Email = email
 	r.CreatedAt = time.Now()
 	r.UpdatedAt = time.Now()
+
+	return nil
+}
+
+func (r *User) SignIn(email, password string) deftype.Error {
+	if !strings.EqualFold(r.Email, email) {
+		return deftype.ErrInvalidRequestData
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(r.Password), []byte(password)); err != nil {
+		return deftype.ErrInvalidRequestData
+	}
 
 	return nil
 }

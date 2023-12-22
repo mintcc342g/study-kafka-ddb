@@ -18,3 +18,12 @@ type SignUpResp struct {
 	Name      string       `json:"name"`
 	Email     string       `json:"email"`
 }
+
+type SignInReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type SignInResp struct {
+	Success bool `json:"success"`
+}
