@@ -31,3 +31,22 @@ func (r *UserService) SignUp(ctx context.Context, req *dtos.SignUpReq) (*dtos.Si
 		Email:     user.Email,
 	}, nil
 }
+
+func (r *UserService) SignIn(ctx context.Context, req *dtos.SignUpReq) (*dtos.SignInResp, deftype.Error) {
+	if !domains.ValidateUserInput(req.Email, req.Password) {
+		return nil, deftype.ErrInvalidRequestData
+	}
+
+	user, err := r.userRepo.GetByEmail(ctx, req.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = user.SignIn(req.Email, req.Password); err != nil {
+		return nil, err
+	}
+
+	return &dtos.SignInResp{
+		Success: true,
+	}, nil
+}
