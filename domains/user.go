@@ -1,8 +1,6 @@
 package domains
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"regexp"
 	"study-kafka-ddb/domains/enums"
 	"study-kafka-ddb/utils"
@@ -10,14 +8,15 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	ID        enums.UserID
+	ID        enums.UserID // NOTE: uuid
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string
-	Email     string
+	Email     string // NOTE: unique
 	Password  string
 }
 
@@ -26,7 +25,7 @@ func NewUser() *User {
 }
 
 func (r *User) SignUp(name, email, password string) deftype.Error {
-	if !ValidateUserInput(name, email, password) {
+	if !isValidName(name) && !ValidateUserInput(email, password) {
 		return deftype.ErrInvalidRequestData
 	}
 
@@ -36,25 +35,32 @@ func (r *User) SignUp(name, email, password string) deftype.Error {
 		return deftype.ErrInternalServerError
 	}
 
+	r.Password, err = hashPassword(password)
+	if err != nil {
+		zap.S().Error("fail to hash password", err)
+		return deftype.ErrInternalServerError
+	}
+
 	r.ID = enums.UserID(uuid)
 	r.Name = name
 	r.Email = email
-	r.Password = hashPassword(password)
 	r.CreatedAt = time.Now()
 	r.UpdatedAt = time.Now()
 
 	return nil
 }
 
-func hashPassword(password string) string {
-	hash := sha256.New()
-	hash.Write([]byte(password))
+func hashPassword(password string) (string, deftype.Error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", deftype.ErrInternalServerError
+	}
 
-	return hex.EncodeToString(hash.Sum(nil))
+	return string(hash), nil
 }
 
-func ValidateUserInput(name, email, password string) bool {
-	return isValidName(name) && isValidEmail(email) && isValidPassword(password)
+func ValidateUserInput(email, password string) bool {
+	return isValidEmail(email) && isValidPassword(password)
 }
 
 func isValidName(name string) bool {
