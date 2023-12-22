@@ -26,7 +26,7 @@ func NewUser() *User {
 }
 
 func (r *User) SignUp(name, email, password string) deftype.Error {
-	if !isValidName(name) && !ValidateUserInput(email, password) {
+	if !isValidName(name) || !ValidateUserInput(email, password) {
 		return deftype.ErrInvalidRequestData
 	}
 
@@ -77,17 +77,17 @@ func ValidateUserInput(email, password string) bool {
 }
 
 func isValidName(name string) bool {
-	return len(name) <= 50
+	return name != "" && len(name) <= 50
 }
 
 func isValidEmail(email string) bool {
 	ok, err := regexp.MatchString(`^[a-zA-Z0-9]{1,150}@[a-zA-Z0-9]{1,150}\.[a-zA-Z]{2,}$`, email)
 
-	return ok || err == nil
+	return ok && err == nil
 }
 
 func isValidPassword(password string) bool {
-	ok, err := regexp.MatchString(`^[a-zA-Z\d]{8,}$`, password)
+	ok, err := regexp.MatchString(`^[a-zA-Z\d]{3,8}$`, password)
 
-	return ok || err == nil
+	return ok && err == nil
 }
