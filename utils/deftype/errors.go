@@ -59,6 +59,7 @@ func New(num int64, code int, msg string) Error {
 
 var (
 	ErrInvalidRequestData = New(1, http.StatusBadRequest, "invalid request data")
+	ErrUnauthorized       = New(2, http.StatusUnauthorized, "the user has no permission")
 
 	ErrInternalServerError = New(5000, http.StatusInternalServerError, "internal server error")
 )
