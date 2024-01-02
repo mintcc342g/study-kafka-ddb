@@ -13,14 +13,14 @@ type Post struct {
 	Contents  string
 	Type      enums.PostType
 
-	// wanted & resume
+	// NOTE: wanted & resume
 	IsOpened bool
 	Position enums.BandPosition
 
-	// wanted
+	// NOTE: wanted
 	BandID enums.BandID
 
-	// resume
+	// NOTE: resume
 	FavoriteGenre enums.Genre
 }
 

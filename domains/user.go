@@ -91,3 +91,11 @@ func isValidPassword(password string) bool {
 
 	return ok && err == nil
 }
+
+func (r *User) SeekPosition(contents string, position enums.BandPosition, genre enums.Genre) (*Post, deftype.Error) {
+	if !isValidContents(contents) {
+		return nil, deftype.ErrInvalidRequestData
+	}
+
+	return NewResumePost(r.ID, contents, position, genre), nil
+}
