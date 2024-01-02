@@ -11,6 +11,7 @@ type Error interface {
 	Number() int64
 	Status() int
 	Error() string
+	Equal(err Error) bool
 }
 
 type CustomError struct {
@@ -29,6 +30,10 @@ func (r CustomError) Status() int {
 
 func (r CustomError) Error() string {
 	return r.message
+}
+
+func (r CustomError) Equal(err Error) bool {
+	return err != nil && r == err.(CustomError)
 }
 
 var errs = map[int64]Error{}
@@ -59,7 +64,10 @@ func New(num int64, code int, msg string) Error {
 
 var (
 	ErrInvalidRequestData = New(1, http.StatusBadRequest, "invalid request data")
-	ErrUnauthorized       = New(2, http.StatusUnauthorized, "the user has no permission")
+	ErrDuplicatedRequest  = New(2, http.StatusBadRequest, "duplicated request")
+
+	ErrUnauthorized = New(4000, http.StatusUnauthorized, "the user has no permission")
+	ErrNotFound     = New(4001, http.StatusNotFound, "not found")
 
 	ErrInternalServerError = New(5000, http.StatusInternalServerError, "internal server error")
 )
