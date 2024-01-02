@@ -4,6 +4,10 @@ GO_VER := $(shell go version | grep -Eo '[.]+[0-9]+[.]' | grep -Eo '[^.][0-9]')
 M = $(shell printf "\033[33;1m▶︎\033[0m")
 MOCKERY = $(GO_BIN)/mockery
 
+.PHONY: test
+test: cc ; $(info $(M) tests…)
+	@go test -v ./...
+
 .PHONY: mocks
 mocks: clean.mocks ; $(info $(M) generate mocks…)
 	@ # interfaces
@@ -14,3 +18,7 @@ mocks: clean.mocks ; $(info $(M) generate mocks…)
 .PHONY: clean.mocks
 clean.mocks: ; $(info $(M) remove mocks…)
 	@rm -rf ./mocks
+
+.PHONY: cc
+cc: ; $(info $(M) clean go cache…)
+	@go clean -cache
