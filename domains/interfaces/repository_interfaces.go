@@ -19,4 +19,5 @@ type BandRepository interface {
 
 type PostRepository interface {
 	Save(ctx context.Context, post *domains.Post) deftype.Error
+	GetUserPostByPositionAndGenre(ctx context.Context, userID enums.UserID, position enums.BandPosition, genre enums.Genre) (*domains.Post, deftype.Error)
 }
