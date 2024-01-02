@@ -4,20 +4,20 @@ type UserID string
 
 type BandID string
 
-type BandRole int32
+type BandPosition int32
 
 const (
-	BandRoleNone BandRole = iota
-	BandRoleVocal
-	BandRoleGuitar
-	BandRoleBass
-	BandRoleDrum
-	BandRoleKeyboard
-	BandRoleDigitalInstrument
-	BandRoleStringInstrument
-	BandRoleBrassInstrument
-	BandRoleWoodwindInstrument
-	BandRoleOthers
+	BandPositionNone BandPosition = iota
+	BandPositionVocal
+	BandPositionGuitar
+	BandPositionBass
+	BandPositionDrum
+	BandPositionKeyboard
+	BandPositionDigitalInstrument
+	BandPositionStringInstrument
+	BandPositionBrassInstrument
+	BandPositionWoodwindInstrument
+	BandPositionOthers
 )
 
 type Genre int32
@@ -28,4 +28,12 @@ const (
 	GenrePop
 	GenreJazz
 	GenreElectronic
+)
+
+type PostType int32
+
+const (
+	PostTypeNone PostType = iota
+	PostTypeWanted
+	PostTypeResume
 )
