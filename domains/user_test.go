@@ -1,6 +1,8 @@
 package domains
 
 import (
+	"strings"
+	"study-kafka-ddb/utils"
 	"study-kafka-ddb/utils/deftype"
 	"testing"
 
@@ -27,7 +29,7 @@ func TestSignUp(t *testing.T) {
 		},
 		{
 			scenario: "fail due to an invalid name",
-			name:     "",
+			name:     []string{"", strings.Repeat("taki", 50)}[utils.RandIntFromTo(0, 1)],
 			result:   deftype.ErrInvalidRequestData,
 		},
 		{
