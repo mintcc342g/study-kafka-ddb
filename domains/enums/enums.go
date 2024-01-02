@@ -2,7 +2,7 @@ package enums
 
 type UserID string
 
-type BandID string
+type BandID int32
 
 type BandPosition int32
 
