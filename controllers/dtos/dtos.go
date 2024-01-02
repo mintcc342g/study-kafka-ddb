@@ -27,3 +27,20 @@ type SignInReq struct {
 type SignInResp struct {
 	Success bool `json:"success"`
 }
+
+type OpenPositionReq struct {
+	UserID   enums.UserID       `json:"user_id"`
+	BandID   enums.BandID       `json:"band_id"`
+	Position enums.BandPosition `json:"position"`
+	Contents string             `json:"contents"`
+}
+
+type OpenPositionResp struct {
+	ID        int64              `json:"id"`
+	BandID    enums.BandID       `json:"band_id"`
+	CreatedAt time.Time          `json:"created_at"`
+	UpdatedAt time.Time          `json:"updated_at"`
+	Position  enums.BandPosition `json:"position"`
+	Contents  string             `json:"contents"`
+	IsOpened  bool               `json:"is_opened"`
+}
