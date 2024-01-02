@@ -44,3 +44,21 @@ type OpenPositionResp struct {
 	Contents  string             `json:"contents"`
 	IsOpened  bool               `json:"is_opened"`
 }
+
+type SeekPositionReq struct {
+	UserID        enums.UserID       `json:"user_id"`
+	BandID        enums.BandID       `json:"band_id"`
+	Position      enums.BandPosition `json:"position"`
+	Contents      string             `json:"contents"`
+	FavoriteGenre enums.Genre        `json:"favorite_genre"`
+}
+
+type SeekPositionResp struct {
+	ID            int64              `json:"id"`
+	CreatedAt     time.Time          `json:"created_at"`
+	UpdatedAt     time.Time          `json:"updated_at"`
+	Position      enums.BandPosition `json:"position"`
+	Contents      string             `json:"contents"`
+	IsOpened      bool               `json:"is_opened"`
+	FavoriteGenre enums.Genre        `json:"favorite_genre"`
+}
