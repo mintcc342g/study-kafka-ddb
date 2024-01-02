@@ -8,7 +8,7 @@ import (
 type BandMember struct {
 	BandID    enums.BandID
 	UserID    enums.UserID
-	Role      enums.BandRole
+	Role      enums.BandPosition
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt time.Time
