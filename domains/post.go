@@ -1,8 +1,12 @@
 package domains
 
 import (
+	"encoding/json"
 	"study-kafka-ddb/domains/enums"
+	"study-kafka-ddb/utils/deftype"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type Post struct {
@@ -38,6 +42,7 @@ func NewPost(userID enums.UserID, contents string) *Post {
 
 func NewWantedPost(userID enums.UserID, contents string, position enums.BandPosition, bandID enums.BandID) *Post {
 	post := NewPost(userID, contents)
+	post.Type = enums.PostTypeWanted
 	post.IsOpened = true
 	post.Position = position
 	post.BandID = bandID
@@ -47,9 +52,35 @@ func NewWantedPost(userID enums.UserID, contents string, position enums.BandPosi
 
 func NewResumePost(userID enums.UserID, contents string, position enums.BandPosition, genre enums.Genre) *Post {
 	post := NewPost(userID, contents)
+	post.Type = enums.PostTypeResume
 	post.IsOpened = true
 	post.Position = position
 	post.FavoriteGenre = genre
 
 	return post
+}
+
+func (r *Post) IsWanted() bool {
+	return r.Type == enums.PostTypeWanted
+}
+
+func (r *Post) IsResume() bool {
+	return r.Type == enums.PostTypeResume
+}
+
+func (r *Post) MakeMessage() ([]byte, deftype.Error) {
+	if r.IsWanted() || r.IsResume() {
+		m := map[string]interface{}{
+			"id": r.ID,
+		}
+		bytm, err := json.Marshal(m)
+		if err != nil {
+			zap.S().Error("fail to marshal a post", "err", err, "post_id", r.ID)
+			return nil, deftype.ErrInternalServerError
+		}
+		return bytm, nil
+	}
+
+	zap.S().Error("invalid post type", "post_id", r.ID)
+	return nil, deftype.ErrInvalidRequestData
 }
