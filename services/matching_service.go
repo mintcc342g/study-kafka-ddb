@@ -16,9 +16,11 @@ type MatchingService struct {
 	bandRepo  interfaces.BandRepository
 	postRepo  interfaces.PostRepository
 	eventRepo interfaces.EventRepository
+	emailRepo interfaces.EmailRepository
 }
 
 const (
+	// TODO: move to config
 	openPositionTopic = "study-app.matching.open-position.event.v1"
 	seekPositionTopic = "study-app.matching.seek-position.event.v1"
 )
@@ -121,6 +123,10 @@ func (r *MatchingService) Connect(ctx context.Context, rawMsg []byte) error {
 		return err
 	}
 
+	if post.IsExpired() {
+		return r.closePost(ctx, post)
+	}
+
 	if post.IsResume() {
 		return r.findBand(ctx, post)
 	}
@@ -129,9 +135,37 @@ func (r *MatchingService) Connect(ctx context.Context, rawMsg []byte) error {
 }
 
 func (r *MatchingService) findBand(ctx context.Context, post *domains.Post) deftype.Error {
+	user, err := r.userRepo.Get(ctx, post.WriterID)
+	if err != nil {
+		if err.Equal(deftype.ErrNotFound) {
+			zap.S().Info("there is no user", "user_id", user.ID)
+			return nil
+		}
+		return err
+	}
+
+	_, err = r.bandRepo.GetByPositionAndGenre(ctx, post.Position, post.FavoriteGenre)
+	if err != nil {
+		zap.S().Info("fail to match. the task will be retried.", "post_id", post.ID)
+		return err
+	}
+
+	if err := r.emailRepo.Send(ctx, user.Email,
+		"We found bands that suits you!",
+		"Please visit our website and check it out!"); err != nil {
+		zap.S().Info("fail to send an e-mail. the task will be retried.", "post_id", post.ID)
+		return deftype.ErrInternalServerError
+	}
+
 	return nil
 }
 
 func (r *MatchingService) findMember(ctx context.Context, post *domains.Post) deftype.Error {
+
+	return nil
+}
+
+func (r *MatchingService) closePost(ctx context.Context, post *domains.Post) deftype.Error {
+	// TODO: send email to the user
 	return nil
 }
