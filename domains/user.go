@@ -63,10 +63,10 @@ func (r *User) SignIn(email, password string) deftype.Error {
 	return nil
 }
 
-func hashPassword(password string) (string, deftype.Error) {
+func hashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", deftype.ErrInternalServerError
+		return "", err
 	}
 
 	return string(hash), nil
