@@ -19,9 +19,11 @@ type BandRepository interface {
 
 type PostRepository interface {
 	Save(ctx context.Context, post *domains.Post) deftype.Error
+	Get(ctx context.Context, postID int64) (*domains.Post, deftype.Error)
 	GetUserPostByPositionAndGenre(ctx context.Context, userID enums.UserID, position enums.BandPosition, genre enums.Genre) (*domains.Post, deftype.Error)
 }
 
 type EventRepository interface {
 	Produce(ctx context.Context, topic string, msg []byte) deftype.Error
+	Subscribe(ctx context.Context, topic string, handler func(context.Context, []byte) error) deftype.Error
 }
