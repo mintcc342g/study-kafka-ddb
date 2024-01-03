@@ -9,6 +9,10 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	validityPeriodOfPost = 6 * 30 * 24 * time.Hour // 6 months
+)
+
 type Post struct {
 	ID        int64
 	WriterID  enums.UserID
@@ -66,6 +70,11 @@ func (r *Post) IsWanted() bool {
 
 func (r *Post) IsResume() bool {
 	return r.Type == enums.PostTypeResume
+}
+
+func (r *Post) IsExpired() bool {
+	expired := r.CreatedAt.Add(validityPeriodOfPost)
+	return time.Now().After(expired)
 }
 
 func (r *Post) MakeMessage() ([]byte, deftype.Error) {

@@ -5,6 +5,7 @@ import (
 	"study-kafka-ddb/utils"
 	"study-kafka-ddb/utils/deftype"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -36,4 +37,33 @@ func testInvalidPostTypeError(t *testing.T) {
 	}[utils.RandIntFromTo(0, 1)]}
 	_, err := post.MakeMessage()
 	assert.Equal(t, deftype.ErrInvalidRequestData, err)
+}
+
+func TestIsExpired(t *testing.T) {
+	type testCase struct {
+		scenario string
+		post     *Post
+		expected bool
+	}
+	testCases := []*testCase{
+		{
+			scenario: "expired",
+			post: &Post{
+				CreatedAt: time.Now().Add(-validityPeriodOfPost - 24),
+			},
+			expected: true,
+		},
+		{
+			scenario: "not expired",
+			post: &Post{
+				CreatedAt: time.Now().Add(-2 * 24 * time.Hour),
+			},
+			expected: false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.scenario, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.post.IsExpired())
+		})
+	}
 }
