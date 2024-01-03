@@ -3,15 +3,22 @@ package services
 import (
 	"context"
 	"study-kafka-ddb/controllers/dtos"
+	"study-kafka-ddb/domains"
 	"study-kafka-ddb/domains/interfaces"
 	"study-kafka-ddb/utils/deftype"
 )
 
 type MatchingService struct {
-	userRepo interfaces.UserRepository
-	bandRepo interfaces.BandRepository
-	postRepo interfaces.PostRepository
+	userRepo  interfaces.UserRepository
+	bandRepo  interfaces.BandRepository
+	postRepo  interfaces.PostRepository
+	eventRepo interfaces.EventRepository
 }
+
+const (
+	openPositionTopic = "study-app.matching.open-position.event.v1"
+	seekPositionTopic = "study-app.matching.seek-position.event.v1"
+)
 
 func (r *MatchingService) OpenPosition(ctx context.Context, req *dtos.OpenPositionReq) (*dtos.OpenPositionResp, deftype.Error) {
 	user, err := r.userRepo.Get(ctx, req.UserID)
@@ -24,23 +31,25 @@ func (r *MatchingService) OpenPosition(ctx context.Context, req *dtos.OpenPositi
 		return nil, err
 	}
 
-	wanted, err := band.OpenPosition(user, req.Position, req.Contents)
+	post, err := band.OpenPosition(user, req.Position, req.Contents)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = r.postRepo.Save(ctx, wanted); err != nil {
+	if err = r.postRepo.Save(ctx, post); err != nil {
 		return nil, err
 	}
 
+	go r.produce(ctx, openPositionTopic, post)
+
 	return &dtos.OpenPositionResp{
-		ID:        wanted.ID,
-		BandID:    wanted.BandID,
-		CreatedAt: wanted.CreatedAt,
-		UpdatedAt: wanted.UpdatedAt,
-		Position:  wanted.Position,
-		Contents:  wanted.Contents,
-		IsOpened:  wanted.IsOpened,
+		ID:        post.ID,
+		BandID:    post.BandID,
+		CreatedAt: post.CreatedAt,
+		UpdatedAt: post.UpdatedAt,
+		Position:  post.Position,
+		Contents:  post.Contents,
+		IsOpened:  post.IsOpened,
 	}, nil
 }
 
@@ -57,22 +66,36 @@ func (r *MatchingService) SeekPosition(ctx context.Context, req *dtos.SeekPositi
 		return nil, err
 	}
 
-	resume, err := user.SeekPosition(req.Contents, req.Position, req.FavoriteGenre)
+	post, err := user.SeekPosition(req.Contents, req.Position, req.FavoriteGenre)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = r.postRepo.Save(ctx, resume); err != nil {
+	if err = r.postRepo.Save(ctx, post); err != nil {
 		return nil, err
 	}
 
+	go r.produce(ctx, seekPositionTopic, post)
+
 	return &dtos.SeekPositionResp{
-		ID:            resume.ID,
-		FavoriteGenre: resume.FavoriteGenre,
-		CreatedAt:     resume.CreatedAt,
-		UpdatedAt:     resume.UpdatedAt,
-		Position:      resume.Position,
-		Contents:      resume.Contents,
-		IsOpened:      resume.IsOpened,
+		ID:            post.ID,
+		FavoriteGenre: post.FavoriteGenre,
+		CreatedAt:     post.CreatedAt,
+		UpdatedAt:     post.UpdatedAt,
+		Position:      post.Position,
+		Contents:      post.Contents,
+		IsOpened:      post.IsOpened,
 	}, nil
+}
+
+func (r *MatchingService) produce(ctx context.Context, topic string, post *domains.Post) {
+	m, err := post.MakeMessage()
+	if err != nil {
+		return
+	}
+
+	err = r.eventRepo.Produce(ctx, topic, m)
+	if err != nil {
+		return
+	}
 }
