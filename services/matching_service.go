@@ -2,10 +2,13 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"study-kafka-ddb/controllers/dtos"
 	"study-kafka-ddb/domains"
 	"study-kafka-ddb/domains/interfaces"
 	"study-kafka-ddb/utils/deftype"
+
+	"go.uber.org/zap"
 )
 
 type MatchingService struct {
@@ -98,4 +101,37 @@ func (r *MatchingService) produce(ctx context.Context, topic string, post *domai
 	if err != nil {
 		return
 	}
+}
+
+func (r *MatchingService) Connect(ctx context.Context, rawMsg []byte) error {
+	m := map[string]int64{}
+	err := json.Unmarshal(rawMsg, &m)
+	if err != nil {
+		return err
+	}
+
+	id, ok := m["id"]
+	if !ok {
+		zap.L().Error("invalid post message")
+		return deftype.ErrInvalidRequestData
+	}
+
+	post, err := r.postRepo.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if post.IsResume() {
+		return r.findBand(ctx, post)
+	}
+
+	return r.findMember(ctx, post)
+}
+
+func (r *MatchingService) findBand(ctx context.Context, post *domains.Post) deftype.Error {
+	return nil
+}
+
+func (r *MatchingService) findMember(ctx context.Context, post *domains.Post) deftype.Error {
+	return nil
 }
