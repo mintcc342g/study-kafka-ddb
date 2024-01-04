@@ -93,3 +93,8 @@ func (r *Post) MakeMessage() ([]byte, deftype.Error) {
 	zap.S().Error("invalid post type", "post_id", r.ID)
 	return nil, deftype.ErrInvalidRequestData
 }
+
+func (r *Post) Close() {
+	r.UpdatedAt = time.Now()
+	r.IsOpened = false
+}

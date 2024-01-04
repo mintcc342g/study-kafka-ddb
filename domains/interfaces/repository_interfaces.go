@@ -15,13 +15,15 @@ type UserRepository interface {
 
 type BandRepository interface {
 	Get(ctx context.Context, bandID enums.BandID) (*domains.Band, deftype.Error)
-	GetByPositionAndGenre(ctx context.Context, position enums.BandPosition, genre enums.Genre) (*domains.Band, deftype.Error)
+	ListByPositionAndGenre(ctx context.Context, position enums.BandPosition, genre enums.Genre) ([]domains.Band, deftype.Error)
 }
 
 type PostRepository interface {
 	Save(ctx context.Context, post *domains.Post) deftype.Error
+	Update(ctx context.Context, post *domains.Post) deftype.Error
 	Get(ctx context.Context, postID int64) (*domains.Post, deftype.Error)
 	GetUserPostByPositionAndGenre(ctx context.Context, userID enums.UserID, position enums.BandPosition, genre enums.Genre) (*domains.Post, deftype.Error)
+	ListByPositionAndGenre(ctx context.Context, position enums.BandPosition, genre enums.Genre) ([]domains.Post, deftype.Error)
 }
 
 type EventRepository interface {

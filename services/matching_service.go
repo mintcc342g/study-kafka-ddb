@@ -139,21 +139,24 @@ func (r *MatchingService) findBand(ctx context.Context, post *domains.Post) deft
 	if err != nil {
 		if err.Equal(deftype.ErrNotFound) {
 			zap.S().Info("there is no user", "user_id", user.ID)
-			return nil
+			return r.closePost(ctx, post)
 		}
 		return err
 	}
 
-	_, err = r.bandRepo.GetByPositionAndGenre(ctx, post.Position, post.FavoriteGenre)
+	bands, err := r.bandRepo.ListByPositionAndGenre(ctx, post.Position, post.FavoriteGenre)
 	if err != nil {
-		zap.S().Info("fail to match. the task will be retried.", "post_id", post.ID)
 		return err
+	}
+
+	if len(bands) == 0 {
+		zap.S().Info("fail to match. the task will be retried.", "post_id", post.ID)
+		return deftype.ErrNotFound
 	}
 
 	if err := r.emailRepo.Send(ctx, user.Email,
 		"We found bands that suits you!",
 		"Please visit our website and check it out!"); err != nil {
-		zap.S().Info("fail to send an e-mail. the task will be retried.", "post_id", post.ID)
 		return deftype.ErrInternalServerError
 	}
 
@@ -161,11 +164,44 @@ func (r *MatchingService) findBand(ctx context.Context, post *domains.Post) deft
 }
 
 func (r *MatchingService) findMember(ctx context.Context, post *domains.Post) deftype.Error {
+	band, err := r.bandRepo.Get(ctx, post.BandID)
+	if err != nil {
+		if err.Equal(deftype.ErrNotFound) {
+			zap.S().Info("there is no band", "post_id", post.ID, "band_id", post.BandID)
+			return r.closePost(ctx, post)
+		}
+		return err
+	}
+
+	reader, err := r.userRepo.Get(ctx, band.ReaderID)
+	if err != nil {
+		if err.Equal(deftype.ErrNotFound) {
+			zap.S().Info("there is no reader of the band", "post_id", post.ID, "band_id", post.BandID)
+			return r.closePost(ctx, post)
+		}
+		return err
+	}
+
+	posts, err := r.postRepo.ListByPositionAndGenre(ctx, post.Position, post.FavoriteGenre)
+	if err != nil {
+		return err
+	}
+
+	if len(posts) == 0 {
+		zap.S().Info("fail to match. the task will be retried.", "post_id", post.ID)
+		return deftype.ErrNotFound
+	}
+
+	if err := r.emailRepo.Send(ctx, reader.Email,
+		"We found a member that matches your band!",
+		"Please visit our website and check it out!"); err != nil {
+		return deftype.ErrInternalServerError
+	}
 
 	return nil
 }
 
 func (r *MatchingService) closePost(ctx context.Context, post *domains.Post) deftype.Error {
-	// TODO: send email to the user
-	return nil
+	post.Close()
+	return r.postRepo.Update(ctx, post)
 }
