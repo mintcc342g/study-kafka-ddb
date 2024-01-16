@@ -11,6 +11,7 @@ import (
 
 const (
 	validityPeriodOfPost = 6 * 30 * 24 * time.Hour // 6 months
+	maximumContentsSize  = 800
 )
 
 type Post struct {
@@ -33,7 +34,7 @@ type Post struct {
 }
 
 func isValidContents(contents string) bool {
-	return len(contents) <= 800
+	return len(contents) <= maximumContentsSize
 }
 
 func NewPost(userID enums.UserID, contents string) *Post {

@@ -12,6 +12,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const (
+	maximumNameSize = 50
+	emailFormat     = `^[a-zA-Z0-9]{1,150}@[a-zA-Z0-9]{1,150}\.[a-zA-Z]{2,}$`
+	passwordFormat  = `^[a-zA-Z\d]{3,8}$`
+)
+
 type User struct {
 	ID        enums.UserID // NOTE: uuid
 	CreatedAt time.Time
@@ -77,17 +83,17 @@ func ValidateUserInput(email, password string) bool {
 }
 
 func isValidName(name string) bool {
-	return name != "" && len(name) <= 50
+	return name != "" && len(name) <= maximumNameSize
 }
 
 func isValidEmail(email string) bool {
-	ok, err := regexp.MatchString(`^[a-zA-Z0-9]{1,150}@[a-zA-Z0-9]{1,150}\.[a-zA-Z]{2,}$`, email)
+	ok, err := regexp.MatchString(emailFormat, email)
 
 	return ok && err == nil
 }
 
 func isValidPassword(password string) bool {
-	ok, err := regexp.MatchString(`^[a-zA-Z\d]{3,8}$`, password)
+	ok, err := regexp.MatchString(passwordFormat, password)
 
 	return ok && err == nil
 }
